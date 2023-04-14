@@ -31,7 +31,7 @@
                                     @else
                                         <th>Current Price</th>
                                     @endif
-
+                                    <th>Buyout Price</th>
                                     <th colspan="3">Action</th>
                                 </tr>
                             </thead>
@@ -64,16 +64,20 @@
                                         @endif
                                         <td>{{ $product->start_price }}</td>
                                         <td>{{ $product->current_price }}</td>
+                                        <td>{{ $product->buyout_price }}</td>
                                         @if ($data->user_type == '1')
                                             <td><a href="{{ url('edit-product/' . $product->pid) }}"
-                                                    class="btn btn-primary btn-sm" style="width: 75px;">Edit</a></td>
+                                                    class="btn btn-primary btn-sm" style="width: 70px;">Edit</a></td>
                                             <td><a href="{{ url('delete-product/' . $product->pid) }}"
-                                                    class="btn btn-danger btn-sm" style="width: 75px;">Delete</a></td>
+                                                    class="btn btn-danger btn-sm" style="width: 70px;">Delete</a></td>
                                             <td><a href="{{ url('sell-product/' . $product->pid) }}"
-                                                    class="btn btn-success btn-sm" style="width: 75px;">Sell</a></td>
+                                                    class="btn btn-success btn-sm" style="width: 70px;">Sell</a></td>
                                         @else
-                                            <td><a href="{{ route('bid', $product->pid) }}"
-                                                    class="btn btn-primary btn-sm w-50" style="width: 75px;">Bid</a>
+                                            <td><a href="{{ route('bid', $product->pid) }}" class="btn btn-success btn-sm"
+                                                    style="width: 70px;">Bid</a>
+                                            </td>
+                                            <td><a href="{{ route('buyout-payment', $product->pid) }}"
+                                                    class="btn btn-dark btn-sm" style="width: 70px;">Buyout</a>
                                             </td>
                                         @endif
                                     </tr>

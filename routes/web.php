@@ -51,3 +51,5 @@ Route::get('payment-gateway/{pid}', [BuyerController::class, 'paymentGateway'])-
 Route::get('buy-product/{pid}', [BuyerController::class, 'buyProduct'])->name('buy-product')->middleware('isLoggedIn');
 Route::get('/purchase-history', [BuyerController::class, 'purchaseHistory'])->name('purchase-history')->middleware('isLoggedIn');
 Route::get('view-product/{pid}', [BuyerController::class, 'viewProduct'])->name('view-product')->middleware('isLoggedIn');
+Route::get('buyout-payment/{pid}', [BuyerController::class, 'buyoutPayment'])->name('buyout-payment')->middleware('isLoggedIn');
+Route::get('buyout/{pid}', [BuyerController::class, 'buyout'])->name('buyout')->middleware('isLoggedIn');

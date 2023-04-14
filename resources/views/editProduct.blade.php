@@ -42,11 +42,25 @@
                     <div class="col-6">
                         <div class="d-flex flex-column">
                             <p class="text mb-1">Starting Price</p>
-                            <input class="form-control mb-3" type="text" name="price"
+                            <input class="form-control mb-3" type="text" name="starting_price"
                                 placeholder="Enter Starting Price" value="{{ $product->start_price }}">
 
                             <span class="text-danger">
-                                @error('price')
+                                @error('starting_price')
+                                    {{ $message }}
+                                @enderror
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="d-flex flex-column">
+                            <p class="text mb-1">Buyout Price</p>
+                            <input class="form-control mb-3" type="text" name="buyout_price"
+                                placeholder="Enter Buyout Price" value="{{ $product->buyout_price }}">
+
+                            <span class="text-danger">
+                                @error('buyout_price')
                                     {{ $message }}
                                 @enderror
                             </span>

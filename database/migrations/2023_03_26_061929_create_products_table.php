@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('image_path')->unique();
             $table->decimal('start_price');
             $table->decimal('current_price')->default(0);
+            $table->decimal('buyout_price');
             $table->integer('sold_by');
             $table->integer('bought_by')->default(0);
             $table->timestamps();

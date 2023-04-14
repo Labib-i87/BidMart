@@ -3,16 +3,17 @@
 @section('content')
     <h1>Bid</h1>
     <br>
+    @if (Session::has('success'))
+        <div class="alert alert-success">{{ Session::get('success') }}</div>
+    @endif
+    @if (Session::has('fail'))
+        <div class="alert alert-danger">{{ Session::get('fail') }}</div>
+    @endif
     <div class="container p-0">
         <div class="card px-4">
             <p class="h8 py-3">Product</p>
             <div class="container mt-5 mb-5">
-                @if (Session::has('success'))
-                    <div class="alert alert-success">{{ Session::get('success') }}</div>
-                @endif
-                @if (Session::has('fail'))
-                    <div class="alert alert-danger">{{ Session::get('fail') }}</div>
-                @endif
+
                 @csrf
                 <div class="row">
                     <div class="col-lg-4">
@@ -41,8 +42,9 @@
                                     @enderror
                                 </span>
                             </div>
+                            <br>
                             {{-- <input type="hidden" name="product_id" value="{{ $product->pid }}"> --}}
-                            <button type="submit" class="btn btn-primary mt-3">Bid</button>
+                            <button type="submit" class="btn btn-success btn-sm" style="width: 70px;">Bid</button>
                         </form>
 
                     </div>

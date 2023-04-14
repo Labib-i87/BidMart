@@ -31,8 +31,11 @@
                         @else
                             <h6>Current Bid: {{ $product->current_price }}</h6>
                         @endif
+
                         <hr>
                         @if ($data->user_type == '1' && $product->status != 'sold')
+                            <h6>Buyout Price: {{ $product->buyout_price }}</h6>
+                            <hr>
                             <a href="{{ url('edit-product/' . $product->pid) }}" class="btn btn-primary btn-sm mx-2"
                                 style="width: 75px;">Edit</a>
                             <a href="{{ url('delete-product/' . $product->pid) }}" class="btn btn-danger btn-sm mx-2"
@@ -40,8 +43,13 @@
                             <a href="{{ url('sell-product/' . $product->pid) }}" class="btn btn-success btn-sm mx-2"
                                 style="width: 75px;">Sell</a>
                         @elseif ($data->user_type != '1' && $product->status != 'sold')
+                            <h6>Buyout Price: {{ $product->buyout_price }}</h6>
+
+                            <hr>
                             <a href="{{ route('bid', $product->pid) }}" class="btn btn-success btn-sm mx-2"
                                 style="width: 75px;">Bid</a>
+                            <a href="{{ route('buyout-payment', $product->pid) }}" class="btn btn-dark btn-sm mx-2"
+                                style="width: 75px;">Buyout</a>
                         @endif
 
                     </div>

@@ -27,6 +27,7 @@
                                     <th>Status</th>
                                     <th>Starting Price</th>
                                     <th>Selling Price</th>
+                                    <th>Buyout Price</th>
                                     <th colspan="3">Action</th>
                                 </tr>
                             </thead>
@@ -41,21 +42,22 @@
                                         <td>{{ $product->status }}</td>
                                         <td>{{ $product->start_price }}</td>
                                         <td>{{ $product->current_price }}</td>
+                                        <td>{{ $product->buyout_price }}</td>
                                         @if ($product->status != 'sold')
                                             <td><a href="{{ url('edit-product/' . $product->pid) }}"
-                                                    class="btn btn-primary btn-sm" style="width: 75px;">Edit</a></td>
+                                                    class="btn btn-primary btn-sm" style="width: 70px;">Edit</a></td>
                                             <td><a href="{{ url('delete-product/' . $product->pid) }}"
-                                                    class="btn btn-danger btn-sm" style="width: 75px;">Delete</a></td>
+                                                    class="btn btn-danger btn-sm" style="width: 70px;">Delete</a></td>
 
                                             <td><a href="{{ url('view-product/' . $product->pid) }}"
-                                                    class="btn btn-success btn-sm" style="width: 75px;">Sell</a></td>
+                                                    class="btn btn-success btn-sm" style="width: 70px;">Sell</a></td>
                                         @else
                                             <td><a href="{{ url('edit-product/' . $product->pid) }}"
                                                     class="btn btn-primary btn-sm invisible">Edit</a></td>
                                             <td><a href="{{ url('delete-product/' . $product->pid) }}"
                                                     class="btn btn-danger btn-sm invisible">Delete</a></td>
                                             <td><a href="{{ url('view-product/' . $product->pid) }}"
-                                                    class="btn btn-primary btn-sm invisible" style="width: 75px;">View</a>
+                                                    class="btn btn-primary btn-sm invisible" style="width: 70px;">View</a>
                                             </td>
                                         @endif
 

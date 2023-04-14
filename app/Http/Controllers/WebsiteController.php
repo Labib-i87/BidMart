@@ -33,6 +33,7 @@ class WebsiteController extends Controller
         if ($data->user_type == '0' || $data->user_type == '2') {
 
             $search = $request['search'] ?? "";
+
             if ($search != "") {
                 $products = Product::where(function ($query) use ($search) {
                     $query->where('product_name', 'LIKE', '%' . $search . '%')
@@ -190,7 +191,8 @@ class WebsiteController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'required',
-            'price' => 'required',
+            'starting_price' => 'required',
+            'buyout_price' => 'required',
             'image' => 'required'
         ]);
 
@@ -198,6 +200,10 @@ class WebsiteController extends Controller
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
 
+        }
+
+        if ($request->starting_price >= $request->buyout_price) {
+            return back()->with('fail', 'Buyout price must be greater than starting price.');
         }
 
         $filename = time() . "-" . $data->username . "." . $request->file('image')->getClientOriginalExtension();
@@ -210,7 +216,8 @@ class WebsiteController extends Controller
         $product->product_name = $request->name;
         $product->description = $request->description;
         $product->image_path = $filename;
-        $product->start_price = $request->price;
+        $product->start_price = $request->starting_price;
+        $product->buyout_price = $request->buyout_price;
         $product->sold_by = $data->id;
 
         $res = $product->save();
@@ -286,7 +293,8 @@ class WebsiteController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'required',
-            'price' => 'required',
+            'starting_price' => 'required',
+            'buyout_price' => 'required',
 
         ]);
 
@@ -296,12 +304,17 @@ class WebsiteController extends Controller
 
         }
 
+        if ($request->starting_price >= $request->buyout_price) {
+            return back()->with('fail', 'Buyout price must be greater than starting price.');
+        }
+
 
         $product = Product::where('pid', $pid)->first();
         $product->product_name = $request->name;
         $product->description = $request->description;
         $product->status = $request->option;
-        $product->start_price = $request->price;
+        $product->start_price = $request->starting_price;
+        $product->buyout_price = $request->buyout_price;
         $product->sold_by = $data->id;
 
         if ($request->hasfile('image')) {

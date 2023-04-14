@@ -52,12 +52,18 @@ class BuyerController extends Controller
 
         $product = Product::where('pid', $pid)->first();
 
+        $bidder = Bidding::where('pid', '=', $pid)->get();
+
         if ($product->bought_by == $data->id) {
             return back()->with('fail', 'You are already winning.');
         }
 
         if ($product->status == 'carted') {
             return back()->with('fail', 'Item is already carted.');
+        }
+
+        if ($bidder->count() >= 3) {
+            return back()->with('fail', 'No Slot Left.');
         }
 
         if (
@@ -85,19 +91,15 @@ class BuyerController extends Controller
                 }
             }
 
-            $bidder = Bidding::where('pid', '=', $pid)->get();
 
-            if ($bidder->count() < 3) {
-                $bid_amount = $request->bid_amount;
-                return view('buyer.entryPayment', compact('data', 'product', 'bid_amount'));
-            } else {
-                return back()->with('fail', 'No Slot Left.');
-            }
+            $bid_amount = $request->bid_amount;
+            return view('buyer.entryPayment', compact('data', 'product', 'bid_amount'));
 
 
 
 
-        } else if ($request->bid_amount <= ($product->current_price + 99)) {
+
+        } else if ($product->current_price <= $request->bid_amount && $request->bid_amount <= $product->current_price + 99) {
             return back()->with('fail', 'Must Bid atleast 100 TK more.');
         }
 
@@ -406,9 +408,12 @@ class BuyerController extends Controller
         } else {
             $products = Product::where('bought_by', $data->id)
                 ->orderBy('product_name')
+                ->where('status', 'sold')
                 ->get();
         }
 
+        // echo "<pre>";
+        // print_r($products->toArray());
 
 
         return view('buyer.purchaseHistory', compact('data', 'products', 'search'));
@@ -429,5 +434,143 @@ class BuyerController extends Controller
 
     }
 
-//
+    public function buyoutPayment($pid)
+    {
+
+        $data = array();
+        if (Session::has('loginID')) {
+            $data = User::where('id', '=', Session::get('loginID'))->first();
+
+        }
+
+        $product = Product::where('pid', $pid)->first();
+
+        $bidder = Bidding::where('pid', $pid)
+            ->where('uid', $data->id)->first();
+
+        return view('buyer.buyoutPayment', compact('data', 'product', 'bidder'));
+    }
+
+    public function buyout(Request $request, $pid)
+    {
+        $request->validate([
+            'name' => 'required',
+            'number' => 'required|digits:16',
+            'date' => 'required',
+            'cvv' => 'required|digits:3'
+
+        ]);
+
+        $data = array();
+        if (Session::has('loginID')) {
+            $data = User::where('id', '=', Session::get('loginID'))->first();
+
+        }
+
+
+        $identify = array();
+        $identify = Card::where('card_number', '=', $request->number)
+            ->where('name', '=', $request->name)
+            ->where('expiry', '=', $request->date)
+            ->where('cvv', '=', $request->cvv)
+            ->first();
+
+        $bidder = Bidding::where('pid', $pid)
+            ->where('uid', $data->id)->first();
+
+        if ($identify && $bidder) {
+
+            $product = Product::where('pid', $pid)->first();
+
+            $wallet = Wallet::where('id', $product->sold_by)->first();
+            $wallet->balance += $product->buyout_price * 0.95;
+            $wallet->update();
+
+            $c_wallet = Wallet::where('id', '0')->first();
+            $c_wallet->balance -= 1000;
+            $c_wallet->balance += $product->buyout_price * 0.05;
+            $c_wallet->update();
+
+            $identify->balance -= $product->buyout_price - 1000;
+            $identify->update();
+
+            $product->current_price = $product->buyout_price;
+            $product->status = 'sold';
+            $product->bought_by = $data->id;
+            $res = $product->update();
+
+            $cart = Cart::where('pid', $pid)->delete();
+
+            $bid = Bidding::where([
+                ['pid', '=', $pid],
+                ['uid', '=', $data->id],
+            ])->delete();
+
+            $bids = Bidding::where('pid', $pid)->get();
+
+            foreach ($bids as $bid) {
+                $card = Card::where('card_number', '=', $bid->card_number)->first();
+                $card->balance += 1000;
+                $card->update();
+            }
+
+            $c_wallet = Wallet::where('id', '0')->first();
+            $c_wallet->balance -= 1000 * $bids->count();
+            $c_wallet->update();
+
+            $bidding = Bidding::where('pid', $pid)->delete();
+
+            if ($res) {
+                return redirect('homepage')->with('success', 'Product Bought');
+            }
+
+        } else if ($identify) {
+
+            $product = Product::where('pid', $pid)->first();
+
+            $wallet = Wallet::where('id', $product->sold_by)->first();
+            $wallet->balance += $product->buyout_price * 0.95;
+            $wallet->update();
+
+            $c_wallet = Wallet::where('id', '0')->first();
+            $c_wallet->balance += $product->buyout_price * 0.05;
+            $c_wallet->update();
+
+            $identify->balance -= $product->buyout_price;
+            $identify->update();
+
+            $product->current_price = $product->buyout_price;
+            $product->status = 'sold';
+            $product->bought_by = $data->id;
+            $res = $product->update();
+
+            $data->user_type = '2';
+            $data->update();
+
+            $cart = Cart::where('pid', $pid)->delete();
+
+            $bids = Bidding::where('pid', $pid)->get();
+
+            foreach ($bids as $bid) {
+                $card = Card::where('card_number', '=', $bid->card_number)->first();
+                $card->balance += 1000;
+                $card->update();
+            }
+
+            $c_wallet = Wallet::where('id', '0')->first();
+            $c_wallet->balance -= 1000 * $bids->count();
+            $c_wallet->update();
+
+            $bidding = Bidding::where('pid', $pid)->delete();
+
+            if ($res) {
+                return redirect('homepage')->with('success', 'Product Bought');
+            }
+
+        }
+
+        return back()->with('fail', 'Invalid Card Info.');
+
+    }
+
 }

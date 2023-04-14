@@ -19,8 +19,8 @@
             </button>
             <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                 <div class="navbar-nav">
-                    <a href="#" class="nav-item nav-link active">Home</a>
-                    <a href="{{ route('back') }}" class="nav-item nav-link">Back</a>
+                    <a href="{{ route('homepage') }}" class="nav-item nav-link active">Home</a>
+
                 </div>
                 @if (Request::route()->getName() == 'dashboard')
                     <form class="d-flex" action="{{ route('homepage') }}" method="GET">
