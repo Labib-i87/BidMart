@@ -15,10 +15,30 @@
 
                 <p class="h8 py-3">Product List</p>
                 <div class="row gx-3">
-                    @csrf
+
+                    <form action="" method="GET">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Filter by Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="all" {{ Request::get('status') == 'all' ? 'selected' : '' }}>All
+                                    </option>
+                                    <option value="online" {{ Request::get('status') == 'online' ? 'selected' : '' }}>Online
+                                    </option>
+                                    <option value="bidding" {{ Request::get('status') == 'bidding' ? 'selected' : '' }}>
+                                        Bidding</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <br />
+                                <button type="submit" class="btn btn-primary btn-sm" style="width: 70px;">Filter</button>
+                            </div>
+                        </div>
+
+                    </form>
+
                     <div class="container mt-4">
-
-
                         <table class="table">
                             <thead>
                                 <tr>

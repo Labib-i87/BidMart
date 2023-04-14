@@ -33,19 +33,27 @@ class WebsiteController extends Controller
         if ($data->user_type == '0' || $data->user_type == '2') {
 
             $search = $request['search'] ?? "";
+            $filter = $request['status'] ?? "";
 
             if ($search != "") {
                 $products = Product::where(function ($query) use ($search) {
                     $query->where('product_name', 'LIKE', '%' . $search . '%')
                         ->orWhere('product_name', 'LIKE', '%' . str_replace(' ', '%', $search) . '%');
                 })
-                    ->whereNotIn('status', ['sold', 'offline'])
+                    ->whereNotIn('status', ['sold', 'offline', 'carted'])
+                    ->orderBy('product_name')
+                    ->get();
+
+
+            } else if ($filter != "all" && $filter != "") {
+                $products = Product::whereNotIn('status', ['sold', 'offline', 'carted'])
+                    ->where('status', $filter)
                     ->orderBy('product_name')
                     ->get();
 
 
             } else {
-                $products = Product::whereNotIn('status', ['sold', 'offline'])
+                $products = Product::whereNotIn('status', ['sold', 'offline', 'carted'])
                     ->orderBy('product_name')
                     ->get();
             }
@@ -56,6 +64,8 @@ class WebsiteController extends Controller
         } else if ($data->user_type == '1') {
 
             $search = $request['search'] ?? "";
+            $filter = $request['status'] ?? "";
+
             if ($search != "") {
                 $products = Product::where('sold_by', $data->id)
                     ->where('product_name', 'LIKE', "%$search%")
@@ -63,6 +73,12 @@ class WebsiteController extends Controller
                     ->orderBy('product_name')
                     ->get();
 
+            } else if ($filter != "all" && $filter != "") {
+                $products = Product::where('sold_by', $data->id)
+                    ->whereNotIn('status', ['sold', 'offline', 'carted'])
+                    ->where('status', $filter)
+                    ->orderBy('product_name')
+                    ->get();
 
             } else {
                 $products = Product::where('sold_by', $data->id)
