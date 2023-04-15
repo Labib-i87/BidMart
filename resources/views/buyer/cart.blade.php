@@ -33,7 +33,10 @@
                             </thead>
                             <tbody>
                                 @foreach ($cartItems as $product)
-                                    <tr>
+                                    <tr onclick="window.location.href='{{ url('view-product/' . $product->pid) }}';"
+                                        style="background-color: #fff;" onmouseover="this.style.backgroundColor='#f0f0f0';"
+                                        onmouseout="this.style.backgroundColor='#fff';">
+
                                         <td><img src="{{ asset('uploads/' . $product->image_path) }}" width=150px
                                                 height=150px alt="Product Image" class="img-fluid"></td>
                                         <td>{{ $product->product_name }}</td>

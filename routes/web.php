@@ -20,13 +20,14 @@ Route::get('/', function () {
     return redirect(url('login'));
 });
 
+// Login and Registration
 Route::get('/login', [AuthController::class, 'login'])->name('login')->middleware('alreadyLoggedIn');
 Route::get('/registration', [AuthController::class, 'registration'])->name('registration')->middleware('alreadyLoggedIn');
 Route::post('/register-user', [AuthController::class, 'registerUser'])->name('register-user');
 Route::post('/login-user', [AuthController::class, 'loginUser'])->name('login-user');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/back', [WebsiteController::class, 'back'])->name('back')->middleware('isLoggedIn');
+// Common pages and Seller controls
 Route::get('/homepage', [WebsiteController::class, 'homepage'])->name('homepage')->middleware('isLoggedIn');
 Route::get('/dashboard', [WebsiteController::class, 'dashboard'])->name('dashboard')->middleware('isLoggedIn');
 Route::get('/verification', [WebsiteController::class, 'verification'])->middleware('isLoggedIn');
@@ -39,14 +40,15 @@ Route::get('edit-product/{pid}', [WebsiteController::class, 'editProduct'])->mid
 Route::put('update-product/{pid}', [WebsiteController::class, 'updateProduct'])->middleware('isLoggedIn');
 Route::get('delete-product/{pid}', [WebsiteController::class, 'deleteProduct'])->middleware('isLoggedIn');
 
+// Buyer Bidding
 Route::get('bid/{pid}', [BuyerController::class, 'bid'])->name('bid')->middleware('isLoggedIn');
 Route::get('entry-payment/{pid}', [BuyerController::class, 'entryPayment'])->name('entry-payment')->middleware('isLoggedIn');
 Route::get('set-bid/{pid}', [BuyerController::class, 'setBid'])->name('set-bid')->middleware('isLoggedIn');
-
+// Sell, Cart, Remove Product
 Route::get('sell-product/{pid}', [BuyerController::class, 'sellProduct'])->name('sell-product')->middleware('isLoggedIn');
 Route::get('/cart', [BuyerController::class, 'cart'])->name('cart')->middleware('isLoggedIn');
 Route::get('remove-product/{pid}', [BuyerController::class, 'removeProduct'])->name('remove-product')->middleware('isLoggedIn');
-
+// Product Purchase
 Route::get('payment-gateway/{pid}', [BuyerController::class, 'paymentGateway'])->name('payment-gateway')->middleware('isLoggedIn');
 Route::get('buy-product/{pid}', [BuyerController::class, 'buyProduct'])->name('buy-product')->middleware('isLoggedIn');
 Route::get('/purchase-history', [BuyerController::class, 'purchaseHistory'])->name('purchase-history')->middleware('isLoggedIn');

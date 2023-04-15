@@ -19,23 +19,21 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 class WebsiteController extends Controller
 {
-    public function back()
-    {
-        return redirect(url()->previous());
-    }
     public function homepage(Request $request)
     {
-        $data = array();
+
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
         }
 
+        // Buyer Page
         if ($data->user_type == '0' || $data->user_type == '2') {
 
             $search = $request['search'] ?? "";
             $filter = $request['status'] ?? "";
 
             if ($search != "") {
+
                 $products = Product::where(function ($query) use ($search) {
                     $query->where('product_name', 'LIKE', '%' . $search . '%')
                         ->orWhere('product_name', 'LIKE', '%' . str_replace(' ', '%', $search) . '%');
@@ -58,17 +56,20 @@ class WebsiteController extends Controller
                     ->get();
             }
 
-
             return view('homepage', compact('data', 'products', 'search'));
 
+            // Seller Page
         } else if ($data->user_type == '1') {
 
             $search = $request['search'] ?? "";
             $filter = $request['status'] ?? "";
 
             if ($search != "") {
-                $products = Product::where('sold_by', $data->id)
-                    ->where('product_name', 'LIKE', "%$search%")
+                $products = Product::where(function ($query) use ($search) {
+                    $query->where('product_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('product_name', 'LIKE', '%' . str_replace(' ', '%', $search) . '%');
+                })
+                    ->where('sold_by', $data->id)
                     ->whereNotIn('status', ['sold', 'offline', 'carted'])
                     ->orderBy('product_name')
                     ->get();
@@ -97,29 +98,21 @@ class WebsiteController extends Controller
 
     public function dashboard()
     {
-        $data = array();
+
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
-        $seller = array();
         $seller = Seller::where('sid', '=', Session::get('loginID'))->first();
-
-
 
         return view('dashboard', compact('data', 'seller'));
     }
 
     public function verification()
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
-
 
         return view('verification', compact('data'));
     }
@@ -134,10 +127,8 @@ class WebsiteController extends Controller
             'number' => 'required'
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $seller = new Seller();
@@ -167,7 +158,6 @@ class WebsiteController extends Controller
             $identify->flag = '1';
             $identify->update();
 
-            $user = array();
             $user = User::where('id', '=', Session::get('loginID'))->first();
             $user->user_type = '1';
             $user->update();
@@ -175,7 +165,6 @@ class WebsiteController extends Controller
             $wallet = new Wallet();
             $wallet->id = $data->id;
             $wallet->save();
-
 
             if ($res) {
                 return redirect('dashboard')->with('success', 'Your verification is successful.');
@@ -185,19 +174,14 @@ class WebsiteController extends Controller
         } else {
             return back()->with('fail', 'Invalid Information Given.');
         }
-
-
-
-
     }
 
     public function productEntry()
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
+
         return view('productEntry', compact('data'));
     }
 
@@ -212,10 +196,8 @@ class WebsiteController extends Controller
             'image' => 'required'
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         if ($request->starting_price >= $request->buyout_price) {
@@ -241,23 +223,21 @@ class WebsiteController extends Controller
         if ($res) {
             return redirect('dashboard')->with('success', 'Your Product is successfully uploaded.');
         }
-
-
     }
-
 
     public function productHistory(Request $request)
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $search = $request['search'] ?? "";
         if ($search != "") {
-            $products = Product::where('sold_by', $data->id)
-                ->where('product_name', 'LIKE', "%$search%")
+            $products = Product::where(function ($query) use ($search) {
+                $query->where('product_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('product_name', 'LIKE', '%' . str_replace(' ', '%', $search) . '%');
+            })
+                ->where('sold_by', $data->id)
                 ->orderBy('product_name')
                 ->get();
 
@@ -275,22 +255,18 @@ class WebsiteController extends Controller
 
     public function payment()
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
+
         return view('paymentGateway', compact('data'));
     }
 
     public function editProduct($pid)
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
 
         $product = Product::where('pid', $pid)->first();
 
@@ -299,13 +275,10 @@ class WebsiteController extends Controller
         } else {
             return back()->with('fail', 'This product already has an active bidding process. Updates are not allowed.');
         }
-
-
     }
 
     public function updateProduct(Request $request, $pid)
     {
-
         $request->validate([
             'name' => 'required',
             'description' => 'required',
@@ -314,10 +287,8 @@ class WebsiteController extends Controller
 
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         if ($request->starting_price >= $request->buyout_price) {
@@ -345,29 +316,20 @@ class WebsiteController extends Controller
             $image_resize->fit(300);
             $image_resize->save(public_path('uploads/' . $filename));
             $product->image_path = $filename;
-
-
         }
 
         $res = $product->update();
 
         if ($res) {
-            // return redirect('homepage')->with('success', 'Your Product is successfully updated.');
             return redirect(url('view-product/' . $product->pid))->with('success', 'Your Product is successfully updated.');
-
         }
-
     }
 
     public function deleteProduct($pid)
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
-
 
         $product = Product::where('pid', $pid)->first();
 

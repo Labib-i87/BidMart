@@ -23,15 +23,11 @@ class BuyerController extends Controller
 {
     public function bid($pid)
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $product = Product::where('pid', $pid)->first();
-
-
 
         return view('buyer.bid', compact('data', 'product'));
     }
@@ -41,17 +37,13 @@ class BuyerController extends Controller
 
         $request->validate([
             'bid_amount' => 'required',
-
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $product = Product::where('pid', $pid)->first();
-
         $bidder = Bidding::where('pid', '=', $pid)->get();
 
         if ($product->bought_by == $data->id) {
@@ -63,7 +55,11 @@ class BuyerController extends Controller
         }
 
         if ($bidder->count() >= 3) {
-            return back()->with('fail', 'No Slot Left.');
+            return back()->with('fail', 'No Slots Left.');
+        }
+
+        if ($request->bid_amount >= $product->buyout_price) {
+            return back()->with('fail', 'Can only bid less than buyout amount');
         }
 
         if (
@@ -91,22 +87,15 @@ class BuyerController extends Controller
                 }
             }
 
-
             $bid_amount = $request->bid_amount;
             return view('buyer.entryPayment', compact('data', 'product', 'bid_amount'));
-
-
-
 
 
         } else if ($product->current_price <= $request->bid_amount && $request->bid_amount <= $product->current_price + 99) {
             return back()->with('fail', 'Must Bid atleast 100 TK more.');
         }
 
-
         return back()->with('fail', 'Invalid Bid Amount.');
-
-
     }
 
     public function setBid(Request $request, $pid)
@@ -119,12 +108,9 @@ class BuyerController extends Controller
 
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
 
         $identify = array();
         $identify = Card::where('card_number', '=', $request->number)
@@ -158,11 +144,9 @@ class BuyerController extends Controller
                 $identify->update();
                 return redirect('homepage')->with('success', 'Bid Successful');
             }
-
         }
 
         return back()->with('fail', 'Invalid Card Info.');
-
     }
 
     // Seller Control
@@ -203,10 +187,8 @@ class BuyerController extends Controller
 
     public function cart()
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $cartItems = Cart::join('products', 'carts.pid', '=', 'products.pid')
@@ -219,37 +201,25 @@ class BuyerController extends Controller
         }
 
         return back()->with('fail', 'Cart is empty.');
-
-
     }
 
     public function removeProduct($pid)
     {
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
 
         $bid = Bidding::where([
             ['pid', '=', $pid],
             ['uid', '=', $data->id],
         ])->delete();
 
-
-        // echo "<pre>";
-        // print_r($bid->toArray());
-        // die;
-
         $cart = Cart::where([
             ['pid', '=', $pid],
             ['uid', '=', $data->id],
         ])->first();
 
-
         $res2 = $cart->delete();
-
 
         if ($bid && $res2) {
 
@@ -270,7 +240,7 @@ class BuyerController extends Controller
                 $res2 = $cart->save();
 
                 if ($res && $res2) {
-                    return back()->with('success', 'Product removed successfully.');
+                    return redirect('cart')->with('success', 'Product removed successfully.');
                 }
                 return back()->with('fail', 'Could not update cart.');
 
@@ -283,7 +253,7 @@ class BuyerController extends Controller
                 $res = $product->update();
 
                 if ($res) {
-                    return back()->with('success', 'Product removed successfully.');
+                    return redirect('cart')->with('success', 'Product removed successfully.');
                 }
                 return back()->with('fail', 'Could not update cart.');
 
@@ -291,25 +261,17 @@ class BuyerController extends Controller
         }
 
         return back()->with('fail', 'Something went wrong.');
-
-
     }
 
     public function paymentGateway($pid)
     {
-
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
 
         $product = Product::where('pid', $pid)->first();
 
         return view('buyer.paymentGateway', compact('data', 'product'));
-        // echo '<pre>';
-        // print_r($pid);
     }
 
     public function buyProduct(Request $request, $pid)
@@ -322,12 +284,9 @@ class BuyerController extends Controller
 
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
-
 
         $identify = array();
         $identify = Card::where('card_number', '=', $request->number)
@@ -377,29 +336,26 @@ class BuyerController extends Controller
             $bidding = Bidding::where('pid', $pid)->delete();
 
             if ($res) {
-
                 return redirect('homepage')->with('success', 'Product Bought');
             }
-
         }
 
         return back()->with('fail', 'Invalid Card Info.');
-
     }
 
     public function purchaseHistory(Request $request)
     {
-
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $search = $request['search'] ?? "";
         if ($search != "") {
-            $products = Product::where('bought_by', $data->id)
-                ->where('product_name', 'LIKE', "%$search%")
+            $products = Product::where(function ($query) use ($search) {
+                $query->where('product_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('product_name', 'LIKE', '%' . str_replace(' ', '%', $search) . '%');
+            })
+                ->where('bought_by', $data->id)
                 ->where('status', 'sold')
                 ->orderBy('product_name')
                 ->get();
@@ -412,35 +368,24 @@ class BuyerController extends Controller
                 ->get();
         }
 
-        // echo "<pre>";
-        // print_r($products->toArray());
-
-
         return view('buyer.purchaseHistory', compact('data', 'products', 'search'));
     }
 
     public function viewProduct($pid)
     {
-
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $product = Product::where('pid', $pid)->first();
 
         return view('buyer.viewProduct', compact('data', 'product'));
-
     }
 
     public function buyoutPayment($pid)
     {
-
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
         $product = Product::where('pid', $pid)->first();
@@ -461,14 +406,10 @@ class BuyerController extends Controller
 
         ]);
 
-        $data = array();
         if (Session::has('loginID')) {
             $data = User::where('id', '=', Session::get('loginID'))->first();
-
         }
 
-
-        $identify = array();
         $identify = Card::where('card_number', '=', $request->number)
             ->where('name', '=', $request->name)
             ->where('expiry', '=', $request->date)
